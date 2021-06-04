@@ -4,7 +4,7 @@ use std::io::{stderr, stdout, Read, Write};
 use std::process::exit;
 use std::vec::Vec;
 
-const BUF_SIZE: usize = 4096;
+const BUF_SIZE: usize = 8192;
 
 fn main() {
     let (mut out, mut err) = (stderr(), stdout());
@@ -25,16 +25,14 @@ fn main() {
     let src_size = src_stat.len();
     let mut copied_size: u64 = 0;
     let mut done = false;
-
+    write!(out, "{} --> {}\n", src, dest).unwrap();
     loop {
         write!(
             out,
-            "{} --> [{}/{} bytes ({:2}%)] --> {}",
-            src,
+            "[{}/{} bytes ({:.1}%)]",
             copied_size,
             src_size,
             fraction(copied_size, src_size) * 100.0,
-            dest
         )
         .unwrap();
         if done {
@@ -46,6 +44,7 @@ fn main() {
                     done = true;
                 }
                 dest_f.write(&buf.as_slice()[0..size]).unwrap();
+                dest_f.sync_data().unwrap();
                 copied_size += size as u64;
                 write!(out, "\r").unwrap();
             }
